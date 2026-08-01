@@ -2,10 +2,16 @@ import socket
 import requests
 import whois
 
+from app.core.config import (
+    VIRUSTOTAL_API_KEY,
+    VIRUSTOTAL_BASE_URL,
+)
+
 from app.schemas.threat import (
     IPLookupResponse,
     DNSLookupResponse,
     WhoisResponse,
+    VirusTotalIPResponse,
 )
 
 
@@ -45,9 +51,6 @@ def lookup_ip(ip: str) -> IPLookupResponse:
 # DNS LOOKUP
 # ==========================================================
 def lookup_dns(domain: str) -> DNSLookupResponse:
-    """
-    Resolve DNS records.
-    """
 
     try:
         addresses = socket.gethostbyname_ex(domain)[2]
@@ -65,9 +68,6 @@ def lookup_dns(domain: str) -> DNSLookupResponse:
 # WHOIS LOOKUP
 # ==========================================================
 def lookup_whois(domain: str) -> WhoisResponse:
-    """
-    Perform WHOIS lookup.
-    """
 
     try:
         data = whois.whois(domain)
@@ -90,3 +90,53 @@ def lookup_whois(domain: str) -> WhoisResponse:
 
     except Exception as e:
         raise Exception(f"WHOIS Lookup Failed: {e}")
+
+
+# ==========================================================
+# VIRUSTOTAL IP LOOKUP
+# ==========================================================
+def lookup_virustotal_ip(ip: str) -> VirusTotalIPResponse:
+
+    headers = {
+        "x-apikey": VIRUSTOTAL_API_KEY
+    }
+
+    url = f"{VIRUSTOTAL_BASE_URL}/ip_addresses/{ip}"
+
+    try:
+
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=20,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        stats = data["data"]["attributes"]["last_analysis_stats"]
+
+        harmless = stats.get("harmless", 0)
+        malicious = stats.get("malicious", 0)
+        suspicious = stats.get("suspicious", 0)
+        undetected = stats.get("undetected", 0)
+
+        if malicious > 0:
+            reputation = "Malicious"
+        elif suspicious > 0:
+            reputation = "Suspicious"
+        else:
+            reputation = "Safe"
+
+        return VirusTotalIPResponse(
+            ip=ip,
+            harmless=harmless,
+            malicious=malicious,
+            suspicious=suspicious,
+            undetected=undetected,
+            reputation=reputation,
+        )
+
+    except Exception as e:
+        raise Exception(f"VirusTotal Lookup Failed: {e}")

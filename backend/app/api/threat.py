@@ -4,12 +4,14 @@ from app.schemas.threat import (
     IPLookupResponse,
     DNSLookupResponse,
     WhoisResponse,
+    VirusTotalIPResponse,
 )
 
 from app.services.threat_service import (
     lookup_ip,
     lookup_dns,
     lookup_whois,
+    lookup_virustotal_ip,
 )
 
 router = APIRouter(
@@ -49,3 +51,14 @@ def get_dns_lookup(domain: str):
 )
 def get_whois_lookup(domain: str):
     return lookup_whois(domain)
+
+
+# ==========================================
+# VirusTotal IP Lookup
+# ==========================================
+@router.get(
+    "/virustotal/ip/{ip}",
+    response_model=VirusTotalIPResponse,
+)
+def get_virustotal_lookup(ip: str):
+    return lookup_virustotal_ip(ip)
