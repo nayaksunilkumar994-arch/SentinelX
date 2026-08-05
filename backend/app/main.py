@@ -7,6 +7,7 @@ from app.api.threat import router as threat_router
 from app.api.ai import router as ai_router
 from app.api.chat import router as chat_router
 from app.api.report import router as report_router
+from app.api.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="SentinelX API",
@@ -14,7 +15,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# ==============================
 # CORS Configuration
+# ==============================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,15 +27,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ==============================
 # Register API Routers
+# ==============================
+
 app.include_router(users_router)
 app.include_router(threat_router)
 app.include_router(ai_router)
 app.include_router(chat_router)
 app.include_router(report_router)
+app.include_router(dashboard_router)
 
-
+# ==============================
 # Root Endpoint
+# ==============================
+
 @app.get("/")
 def root():
     return {
@@ -42,12 +52,15 @@ def root():
             "Threat Intelligence",
             "AI Threat Analysis",
             "AI Chat",
-            "PDF Report Generator"
+            "PDF Report Generator",
+            "Dashboard"
         ]
     }
 
+# ==============================
+# Health Check
+# ==============================
 
-# Health Check Endpoint
 @app.get("/health")
 def health():
     return {
