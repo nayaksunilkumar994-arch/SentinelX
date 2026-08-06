@@ -1,6 +1,6 @@
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
-import Dashboard from "../pages/Dashboard";
+import ThreatIntel from "../pages/ThreatIntel";
 
 function MainLayout() {
   return (
@@ -29,7 +29,7 @@ function MainLayout() {
             overflow: "auto",
           }}
         >
-          <Dashboard />
+          <ThreatIntel />
         </div>
       </div>
     </div>
