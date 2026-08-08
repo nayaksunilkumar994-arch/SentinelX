@@ -1,14 +1,16 @@
+import { Outlet } from "react-router-dom";
 import Sidebar from "../components/layout/Sidebar";
 import Navbar from "../components/layout/Navbar";
-import ThreatIntel from "../pages/ThreatIntel";
 
 function MainLayout() {
   return (
     <div
       style={{
         display: "flex",
-        height: "100vh",
+        minHeight: "100vh",
+        width: "100%",
         background: "#050816",
+        color: "#ffffff",
       }}
     >
       <Sidebar />
@@ -16,21 +18,22 @@ function MainLayout() {
       <div
         style={{
           flex: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
         <Navbar />
 
-        <div
+        <main
           style={{
             flex: 1,
             padding: "30px",
-            overflow: "auto",
+            overflowY: "auto",
           }}
         >
-          <ThreatIntel />
-        </div>
+          <Outlet />
+        </main>
       </div>
     </div>
   );

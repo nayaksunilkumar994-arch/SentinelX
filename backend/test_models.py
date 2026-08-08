@@ -1,13 +1,10 @@
+import os
+from dotenv import load_dotenv
 from google import genai
-from app.core.config import GEMINI_API_KEY
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+load_dotenv()
 
-print("Models that support generateContent:\n")
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 for model in client.models.list():
-    methods = getattr(model, "supported_actions", None)
-
-    if methods:
-        if "generateContent" in methods:
-            print(model.name)
+    print(model.name)

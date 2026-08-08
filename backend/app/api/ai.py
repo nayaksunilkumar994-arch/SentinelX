@@ -1,25 +1,27 @@
 from fastapi import APIRouter
-
-from app.schemas.ai import (
-    AIAnalysisRequest,
-    AIAnalysisResponse,
-)
+from pydantic import BaseModel
 
 from app.services.ai_service import analyze_threat
 
 router = APIRouter(
     prefix="/ai",
-    tags=["AI Threat Analysis"],
+    tags=["AI Analysis"]
 )
 
 
-@router.post(
-    "/analyze",
-    response_model=AIAnalysisResponse,
-)
-def analyze(request: AIAnalysisRequest):
-    result = analyze_threat(request.threat_data)
+class ThreatRequest(BaseModel):
+    ip: str
+    country: str
+    city: str
+    organization: str
+    timezone: str
 
-    return AIAnalysisResponse(
-        analysis=result
-    )
+
+@router.post("/analyze")
+def analyze(request: ThreatRequest):
+    result = analyze_threat(request.dict())
+
+    return {
+        "status": "success",
+        "analysis": result
+    }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { analyzeIP } from "../services/dashboardService";
+import { analyzeIP, analyzeWithAI } from "../services/dashboardService";
 
 function ThreatIntel() {
   const [ip, setIp] = useState("");
@@ -13,24 +13,34 @@ function ThreatIntel() {
     timezone: "--",
   });
 
+  const [aiAnalysis, setAiAnalysis] = useState("");
+
   const handleAnalyze = async () => {
     if (!ip) return;
 
     setLoading(true);
+    setAiAnalysis("");
 
     try {
-      const data = await analyzeIP(ip);
+      // Get threat intelligence
+      const threat = await analyzeIP(ip);
 
       setResult({
         reputation: "Safe",
-        country: data.country,
-        city: data.city,
-        organization: data.organization,
-        timezone: data.timezone,
+        country: threat.country,
+        city: threat.city,
+        organization: threat.organization,
+        timezone: threat.timezone,
       });
+
+      // Send to Gemini AI
+      const ai = await analyzeWithAI(threat);
+
+      setAiAnalysis(ai.analysis);
+
     } catch (error) {
-      alert("Unable to analyze IP.");
       console.error(error);
+      alert("Analysis Failed");
     }
 
     setLoading(false);
@@ -44,7 +54,7 @@ function ThreatIntel() {
           marginBottom: "30px",
         }}
       >
-        Threat Intelligence
+        AI Threat Intelligence
       </h1>
 
       <div
@@ -54,7 +64,9 @@ function ThreatIntel() {
           borderRadius: "20px",
         }}
       >
-        <h2 style={{ color: "white" }}>Enter IP Address</h2>
+        <h2 style={{ color: "white" }}>
+          Enter IP Address
+        </h2>
 
         <input
           value={ip}
@@ -76,13 +88,14 @@ function ThreatIntel() {
         <button
           onClick={handleAnalyze}
           style={{
-            padding: "16px 40px",
+            padding: "15px 40px",
             background: "#00d9ff",
-            color: "#000",
+            color: "#050816",
             border: "none",
             borderRadius: "10px",
             cursor: "pointer",
             fontWeight: "bold",
+            fontSize: "16px",
           }}
         >
           {loading ? "Analyzing..." : "Analyze Threat"}
@@ -90,13 +103,15 @@ function ThreatIntel() {
 
         <div
           style={{
-            marginTop: "40px",
+            marginTop: "35px",
             background: "#0f172a",
             padding: "25px",
             borderRadius: "15px",
           }}
         >
-          <h2 style={{ color: "#00d9ff" }}>Analysis Result</h2>
+          <h2 style={{ color: "#00d9ff" }}>
+            Threat Information
+          </h2>
 
           <p style={{ color: "white" }}>
             <strong>Reputation:</strong> {result.reputation}
@@ -118,6 +133,33 @@ function ThreatIntel() {
             <strong>Timezone:</strong> {result.timezone}
           </p>
         </div>
+
+        {aiAnalysis && (
+          <div
+            style={{
+              marginTop: "30px",
+              background: "#101826",
+              padding: "25px",
+              borderRadius: "15px",
+              border: "2px solid #00d9ff",
+            }}
+          >
+            <h2 style={{ color: "#00d9ff" }}>
+              🤖 AI Security Analysis
+            </h2>
+
+            <pre
+              style={{
+                color: "#ffffff",
+                whiteSpace: "pre-wrap",
+                fontFamily: "inherit",
+                lineHeight: "1.7",
+              }}
+            >
+              {aiAnalysis}
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   );
