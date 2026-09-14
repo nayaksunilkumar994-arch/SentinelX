@@ -1,26 +1,48 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://postgres:sentinel123@localhost:5432/sentinelx_db"
+from app.database.base import Base
 
-# Create database engine
-engine = create_engine(DATABASE_URL)
 
-# Session factory
+# ==========================================
+# PostgreSQL Database Configuration
+# ==========================================
+
+DATABASE_URL = (
+    "postgresql://postgres:sentinel123@127.0.0.1:5432/sentinelx_db"
+)
+
+
+# ==========================================
+# Database Engine
+# ==========================================
+
+engine = create_engine(
+    DATABASE_URL
+)
+
+
+# ==========================================
+# Database Session
+# ==========================================
+
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# Base class for SQLAlchemy models
-Base = declarative_base()
 
+# ==========================================
+# Database Dependency
+# ==========================================
 
-# Dependency to get DB session
 def get_db():
+
     db = SessionLocal()
+
     try:
         yield db
+
     finally:
         db.close()
