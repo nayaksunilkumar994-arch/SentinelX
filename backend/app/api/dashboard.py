@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from sqlalchemy import func
+
+from app.api.dependencies import get_current_user
+from app.models.user import User
 
 from app.database.database import SessionLocal
 from app.models.alert import Alert
@@ -35,7 +37,8 @@ def get_db():
 
 @router.get("/stats")
 def get_dashboard_stats(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     total_investigations = (

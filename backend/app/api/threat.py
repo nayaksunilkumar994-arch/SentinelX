@@ -1,4 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.api.dependencies import get_current_user
+from app.models.user import User
 
 from app.schemas.threat import (
     IPLookupResponse,
@@ -33,7 +36,10 @@ router = APIRouter(
     "/ip/{ip}",
     response_model=IPLookupResponse,
 )
-def get_ip_lookup(ip: str):
+def get_ip_lookup(
+    ip: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return lookup_ip(ip)
 
@@ -46,7 +52,10 @@ def get_ip_lookup(ip: str):
     "/dns/{domain}",
     response_model=DNSLookupResponse,
 )
-def get_dns_lookup(domain: str):
+def get_dns_lookup(
+    domain: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return lookup_dns(domain)
 
@@ -59,7 +68,10 @@ def get_dns_lookup(domain: str):
     "/whois/{domain}",
     response_model=WhoisResponse,
 )
-def get_whois_lookup(domain: str):
+def get_whois_lookup(
+    domain: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return lookup_whois(domain)
 
@@ -72,7 +84,10 @@ def get_whois_lookup(domain: str):
     "/virustotal/ip/{ip}",
     response_model=VirusTotalIPResponse,
 )
-def get_virustotal_lookup(ip: str):
+def get_virustotal_lookup(
+    ip: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return lookup_virustotal_ip(ip)
 
@@ -85,7 +100,10 @@ def get_virustotal_lookup(ip: str):
     "/abuseipdb/ip/{ip}",
     response_model=AbuseIPDBResponse,
 )
-def get_abuseipdb_lookup(ip: str):
+def get_abuseipdb_lookup(
+    ip: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return lookup_abuseipdb(ip)
 
@@ -98,6 +116,9 @@ def get_abuseipdb_lookup(ip: str):
     "/correlate/{ip}",
     response_model=ThreatCorrelationResponse,
 )
-def get_threat_correlation(ip: str):
+def get_threat_correlation(
+    ip: str,
+    current_user: User = Depends(get_current_user),
+):
 
     return correlate_threat_intelligence(ip)

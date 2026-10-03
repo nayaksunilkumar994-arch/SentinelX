@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
+from app.api.role_checker import RoleChecker
+from app.models.user import User
+
 from app.database.database import SessionLocal
 
 from app.schemas.alert import (
@@ -23,6 +27,13 @@ router = APIRouter(
     prefix="/alerts",
     tags=["SOC Alerts"],
 )
+
+
+# ==========================================================
+# ROLE-BASED ACCESS CONTROL
+# ==========================================================
+
+allow_admin = RoleChecker(["admin"])
 
 
 # ==========================================
@@ -51,6 +62,7 @@ def get_db():
 def create_alert_endpoint(
     alert: AlertCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     return create_alert(
@@ -69,6 +81,7 @@ def create_alert_endpoint(
 )
 def get_alerts_endpoint(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     return get_all_alerts(db)
@@ -85,6 +98,7 @@ def get_alerts_endpoint(
 def get_investigation_alerts_endpoint(
     investigation_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     return get_investigation_alerts(
@@ -104,6 +118,7 @@ def get_investigation_alerts_endpoint(
 def get_alert_endpoint(
     alert_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     alert = get_alert(
@@ -122,7 +137,7 @@ def get_alert_endpoint(
 
 
 # ==========================================
-# Update Alert
+# Update Alert — ADMIN ONLY
 # ==========================================
 
 @router.patch(
@@ -133,6 +148,7 @@ def update_alert_endpoint(
     alert_id: int,
     alert_update: AlertUpdate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(allow_admin),
 ):
 
     alert = update_alert(
@@ -152,7 +168,7 @@ def update_alert_endpoint(
 
 
 # ==========================================
-# Delete Alert
+# Delete Alert — ADMIN ONLY
 # ==========================================
 
 @router.delete(
@@ -162,6 +178,7 @@ def update_alert_endpoint(
 def delete_alert_endpoint(
     alert_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(allow_admin),
 ):
 
     alert = delete_alert(

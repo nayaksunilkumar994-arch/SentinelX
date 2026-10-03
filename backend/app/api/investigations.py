@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
+from app.api.role_checker import RoleChecker
+from app.models.user import User
+
 from app.database.database import get_db
 
 from app.schemas.investigation import (
@@ -22,6 +26,17 @@ router = APIRouter(
 )
 
 
+# ==========================================================
+# ROLE-BASED ACCESS CONTROL
+# ==========================================================
+
+allow_admin = RoleChecker(["admin"])
+
+
+# ==========================================================
+# CREATE INVESTIGATION
+# ==========================================================
+
 @router.post(
     "/",
     response_model=InvestigationResponse,
@@ -30,6 +45,7 @@ router = APIRouter(
 def create(
     investigation: InvestigationCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     return create_investigation(
@@ -38,16 +54,25 @@ def create(
     )
 
 
+# ==========================================================
+# GET ALL INVESTIGATIONS
+# ==========================================================
+
 @router.get(
     "/",
     response_model=list[InvestigationResponse],
 )
 def get_all(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     return get_all_investigations(db)
 
+
+# ==========================================================
+# GET SINGLE INVESTIGATION
+# ==========================================================
 
 @router.get(
     "/{investigation_id}",
@@ -56,6 +81,7 @@ def get_all(
 def get_one(
     investigation_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     investigation = get_investigation(
@@ -73,12 +99,17 @@ def get_one(
     return investigation
 
 
+# ==========================================================
+# DELETE INVESTIGATION — ADMIN ONLY
+# ==========================================================
+
 @router.delete(
     "/{investigation_id}",
 )
 def delete(
     investigation_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(allow_admin),
 ):
 
     investigation = delete_investigation(

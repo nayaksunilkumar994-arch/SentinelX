@@ -44,7 +44,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="SentinelX API",
     description="AI-Powered Cyber Threat Intelligence Platform",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
@@ -54,10 +54,23 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS",
+    ],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+    ],
 )
 
 
@@ -81,7 +94,6 @@ app.include_router(alerts_router)
 
 @app.get("/")
 def root():
-
     return {
         "message": "Welcome to SentinelX API",
         "status": "Running",
@@ -92,8 +104,8 @@ def root():
             "AI Chat",
             "PDF Report Generator",
             "Dashboard",
-            "Investigation History"
-        ]
+            "Investigation History",
+        ],
     }
 
 
@@ -103,9 +115,8 @@ def root():
 
 @app.get("/health")
 def health():
-
     return {
         "status": "Healthy",
         "application": "SentinelX",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
