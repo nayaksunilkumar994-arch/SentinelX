@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 // ==========================================================
 // SENTINELX INVESTIGATION API
 // ==========================================================
@@ -13,6 +12,26 @@ const API = axios.create({
   },
 });
 
+// ==========================================================
+// ATTACH JWT AUTHENTICATION
+// ==========================================================
+
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(
+      "sentinelx_access_token"
+    );
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // ==========================================================
 // CREATE INVESTIGATION
@@ -21,7 +40,6 @@ const API = axios.create({
 export async function createInvestigation(
   investigationData
 ) {
-
   if (!investigationData) {
     throw new Error(
       "Investigation data is required."
@@ -45,13 +63,11 @@ export async function createInvestigation(
   return response.data;
 }
 
-
 // ==========================================================
 // GET ALL INVESTIGATIONS
 // ==========================================================
 
 export async function getInvestigations() {
-
   const response = await API.get(
     "/investigations/"
   );
@@ -59,13 +75,11 @@ export async function getInvestigations() {
   return response.data;
 }
 
-
 // ==========================================================
 // GET ONE INVESTIGATION
 // ==========================================================
 
 export async function getInvestigation(id) {
-
   if (!id) {
     throw new Error(
       "Investigation ID is required."
@@ -79,13 +93,11 @@ export async function getInvestigation(id) {
   return response.data;
 }
 
-
 // ==========================================================
 // DELETE INVESTIGATION
 // ==========================================================
 
 export async function deleteInvestigation(id) {
-
   if (!id) {
     throw new Error(
       "Investigation ID is required."
@@ -98,7 +110,6 @@ export async function deleteInvestigation(id) {
 
   return response.data;
 }
-
 
 // ==========================================================
 // DEFAULT EXPORT

@@ -8,10 +8,33 @@ const API_BASE_URL = "http://127.0.0.1:8000";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// ==========================================================
+// ATTACH JWT AUTHENTICATION
+// ==========================================================
+
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(
+      "sentinelx_access_token"
+    );
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // ==========================================================
 // ANALYZE IP — DAY 25 CORRELATION ENGINE
@@ -42,33 +65,6 @@ export const analyzeIP = async (ip) => {
 
 // ==========================================================
 // AI THREAT ANALYSIS
-// ==========================================================
-// Backend endpoint:
-// POST /ai/analyze
-//
-// Backend expects:
-//
-// {
-//   ip: "...",
-//   country: "...",
-//   city: "...",
-//   organization: "...",
-//   timezone: "..."
-// }
-//
-// Backend returns:
-//
-// {
-//   status: "success",
-//   analysis: "..."
-// }
-//
-// IMPORTANT:
-// ThreatIntel.jsx expects:
-// ai.analysis
-//
-// Therefore this function must return response.data
-// directly from /ai/analyze.
 // ==========================================================
 
 export const analyzeWithAI = async (threatData) => {
@@ -122,7 +118,7 @@ export const saveInvestigation = async (
 
   try {
     const response = await api.post(
-      "/investigations",
+      "/investigations/",
       investigationData
     );
 
@@ -139,21 +135,6 @@ export const saveInvestigation = async (
 
 // ==========================================================
 // GENERATE PDF REPORT
-// ==========================================================
-// Backend endpoint:
-//
-// POST /report/generate
-//
-// Backend expects:
-//
-// {
-//   ip: "...",
-//   ai_analysis: "..."
-// }
-//
-// Backend returns:
-//
-// application/pdf
 // ==========================================================
 
 export const generateReport = async (

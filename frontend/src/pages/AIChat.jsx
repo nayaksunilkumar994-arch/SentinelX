@@ -1,6 +1,44 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
+// ==========================================================
+// SENTINELX AI CHAT API
+// ==========================================================
+
+const API = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+  timeout: 60000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ==========================================================
+// ATTACH JWT AUTHENTICATION
+// ==========================================================
+
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(
+      "sentinelx_access_token"
+    );
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// ==========================================================
+// AI CHAT COMPONENT
+// ==========================================================
+
 function AIChat() {
   const [messages, setMessages] = useState([
     {
@@ -15,12 +53,19 @@ function AIChat() {
 
   const chatEndRef = useRef(null);
 
-  // Auto-scroll to the newest message
+  // ========================================================
+  // AUTO-SCROLL TO NEWEST MESSAGE
+  // ========================================================
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, loading]);
+
+  // ========================================================
+  // SEND MESSAGE
+  // ========================================================
 
   const sendMessage = async () => {
     const trimmedQuestion = question.trim();
@@ -34,13 +79,17 @@ function AIChat() {
       text: trimmedQuestion,
     };
 
-    setMessages((previous) => [...previous, userMessage]);
+    setMessages((previous) => [
+      ...previous,
+      userMessage,
+    ]);
+
     setQuestion("");
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/chat/ask",
+      const response = await API.post(
+        "/chat/ask",
         {
           question: trimmedQuestion,
         }
@@ -69,23 +118,39 @@ function AIChat() {
     }
   };
 
+  // ========================================================
+  // ENTER KEY HANDLER
+  // ========================================================
+
   const handleKeyDown = (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
       event.preventDefault();
       sendMessage();
     }
   };
 
+  // ========================================================
+  // CLEAR CHAT
+  // ========================================================
+
   const clearChat = () => {
     setMessages([
       {
         role: "ai",
-        text: "Chat cleared. How can I help you with cybersecurity?",
+        text:
+          "Chat cleared. How can I help you with cybersecurity?",
       },
     ]);
 
     setCopiedIndex(null);
   };
+
+  // ========================================================
+  // COPY MESSAGE
+  // ========================================================
 
   const copyMessage = async (text, index) => {
     try {
@@ -100,6 +165,10 @@ function AIChat() {
       console.error("Copy failed:", error);
     }
   };
+
+  // ========================================================
+  // UI
+  // ========================================================
 
   return (
     <div
@@ -208,7 +277,8 @@ function AIChat() {
           border: "1px solid #1e293b",
           borderRadius: "16px",
           padding: "22px",
-          boxShadow: "0 10px 35px rgba(0,0,0,0.25)",
+          boxShadow:
+            "0 10px 35px rgba(0,0,0,0.25)",
         }}
       >
         {messages.map((message, index) => {
@@ -254,7 +324,11 @@ function AIChat() {
                     fontSize: "15px",
                   }}
                 >
-                  {isUser ? "👤" : isError ? "⚠️" : "🤖"}
+                  {isUser
+                    ? "👤"
+                    : isError
+                    ? "⚠️"
+                    : "🤖"}
                 </div>
 
                 {/* Message */}
@@ -309,7 +383,10 @@ function AIChat() {
                   {!isUser && !isError && (
                     <button
                       onClick={() =>
-                        copyMessage(message.text, index)
+                        copyMessage(
+                          message.text,
+                          index
+                        )
                       }
                       style={{
                         marginTop: "6px",
@@ -395,7 +472,9 @@ function AIChat() {
 
         <button
           onClick={sendMessage}
-          disabled={loading || !question.trim()}
+          disabled={
+            loading || !question.trim()
+          }
           style={{
             alignSelf: "stretch",
             minWidth: "90px",
@@ -425,8 +504,9 @@ function AIChat() {
           marginTop: "8px",
         }}
       >
-        SentinelX AI is designed for cybersecurity-related
-        questions and authorized security research.
+        SentinelX AI is designed for
+        cybersecurity-related questions and
+        authorized security research.
       </div>
     </div>
   );

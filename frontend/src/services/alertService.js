@@ -1,37 +1,76 @@
 import axios from "axios";
 
-const API = "http://127.0.0.1:8000";
+// ==========================================================
+// SENTINELX ALERTS API
+// ==========================================================
 
-// ==========================================
-// Get All Alerts
-// ==========================================
+const API = axios.create({
+  baseURL: "http://127.0.0.1:8000",
+  timeout: 30000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ==========================================================
+// ATTACH JWT AUTHENTICATION
+// ==========================================================
+
+API.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(
+      "sentinelx_access_token"
+    );
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// ==========================================================
+// GET ALL ALERTS
+// ==========================================================
 
 export const getAlerts = async () => {
-  const response = await axios.get(`${API}/alerts/`);
+  const response = await API.get("/alerts/");
   return response.data;
 };
 
-
-// ==========================================
-// Get One Alert
-// ==========================================
+// ==========================================================
+// GET ONE ALERT
+// ==========================================================
 
 export const getAlert = async (id) => {
-  const response = await axios.get(
-    `${API}/alerts/${id}`
+  if (!id) {
+    throw new Error("Alert ID is required.");
+  }
+
+  const response = await API.get(
+    `/alerts/${id}`
   );
 
   return response.data;
 };
 
-
-// ==========================================
-// Acknowledge Alert
-// ==========================================
+// ==========================================================
+// ACKNOWLEDGE ALERT
+// Admin-only operation enforced by backend RBAC
+// ==========================================================
 
 export const acknowledgeAlert = async (id) => {
-  const response = await axios.patch(
-    `${API}/alerts/${id}`,
+  if (!id) {
+    throw new Error("Alert ID is required.");
+  }
+
+  const response = await API.patch(
+    `/alerts/${id}`,
     {
       status: "Acknowledged",
     }
@@ -40,14 +79,18 @@ export const acknowledgeAlert = async (id) => {
   return response.data;
 };
 
-
-// ==========================================
-// Resolve Alert
-// ==========================================
+// ==========================================================
+// RESOLVE ALERT
+// Admin-only operation enforced by backend RBAC
+// ==========================================================
 
 export const resolveAlert = async (id) => {
-  const response = await axios.patch(
-    `${API}/alerts/${id}`,
+  if (!id) {
+    throw new Error("Alert ID is required.");
+  }
+
+  const response = await API.patch(
+    `/alerts/${id}`,
     {
       status: "Resolved",
     }
@@ -55,3 +98,9 @@ export const resolveAlert = async (id) => {
 
   return response.data;
 };
+
+// ==========================================================
+// DEFAULT EXPORT
+// ==========================================================
+
+export default API;
